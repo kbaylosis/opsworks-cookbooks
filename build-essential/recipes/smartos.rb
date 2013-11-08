@@ -17,11 +17,18 @@
 # limitations under the License.
 #
 
+include_recipe 'pkgin'
+
 %w{
-  build-essential
+  gcc47
+  gcc47-runtime
+  scmgit-base
+  gmake
+  pkg-config
+  binutils
 }.each do |pkg|
 
-  r = package pkg do
+  r = pkgin_package pkg do
     action( node['build_essential']['compiletime'] ? :nothing : :install )
   end
   r.run_action(:install) if node['build_essential']['compiletime']
