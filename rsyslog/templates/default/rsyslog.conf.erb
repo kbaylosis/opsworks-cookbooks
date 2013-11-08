@@ -17,15 +17,13 @@ $PreserveFQDN <%= node['rsyslog']['preserve_fqdn'] %>
 #### MODULES ####
 #################
 
-<% if node['rsyslog']['modules'] && !node['rsyslog']['modules'].empty? %>
-  <% [*node['rsyslog']['modules']].each do |mod| %>
-$ModLoad <%= mod %>
-  <% end %>
-<% end %>
+$ModLoad imuxsock # provides support for local system logging
+$ModLoad imklog   # provides kernel logging support (previously done by rklogd)
+#$ModLoad immark  # provides --MARK-- message capability
 
 <% if node['rsyslog']['server'] -%>
-# Provide <%= node['rsyslog']['protocol'].upcase %> log reception
-<% case node['rsyslog']['protocol'] -%>
+# Provide <%= @protocol.upcase %> log reception
+<% case @protocol -%>
 <% when "tcp" -%>
 $ModLoad imtcp
 $InputTCPServerRun <%= node['rsyslog']['port'] %>
@@ -39,16 +37,14 @@ $UDPServerRun <%= node['rsyslog']['port'] %>
 #### GLOBAL DIRECTIVES ####
 ###########################
 
-<% unless node["rsyslog"]["high_precision_timestamps"] -%>
 #
 # Use default timestamp format.
 # To enable high precision timestamps, comment out the following line.
 #
 $ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
-<% end -%>
 
 # Filter duplicated messages
-$RepeatedMsgReduction <%= node['rsyslog']['repeated_msg_reduction'] %>
+$RepeatedMsgReduction on
 
 #
 # Set temporary directory to buffer syslog queue
@@ -68,6 +64,6 @@ $PrivDropToUser <%= node['rsyslog']['user'] %>
 $PrivDropToGroup <%= node['rsyslog']['group'] %>
 <% end %>
 #
-# Include all config files in <%= node['rsyslog']['config_prefix'] %>/rsyslog.d/
+# Include all config files in /etc/rsyslog.d/
 #
-$IncludeConfig <%= node['rsyslog']['config_prefix'] %>/rsyslog.d/*.conf
+$IncludeConfig /etc/rsyslog.d/*.conf
